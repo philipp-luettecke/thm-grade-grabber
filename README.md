@@ -53,7 +53,8 @@ sensor:
     json_attributes_topic: "thm_grabber/summary"
 ```
 ### Available attribtues
-
+| Attribute | Description | 
+| --- | --- |
 | number | Represents the Module Number (TI5001 etc.) |
 | description | Contains the Name of the Module |
 | semester | Contains the Semester, the Module was visited |
