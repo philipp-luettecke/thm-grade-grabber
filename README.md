@@ -94,7 +94,7 @@ data_template:
 
 ### Markdown Card to Display the Grades
 
-Add a new Markdown Card to the 
+Add a new Markdown Card to the Lovelcae UI. Paste the following code to get a full list of the available grades.
 
 
 ```bash
