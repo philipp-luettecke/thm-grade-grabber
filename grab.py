@@ -11,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import paho.mqtt.client as paho
 
 URL = "https://studien-sb-service.th-mittelhessen.de/docu/online.html"
+DEBUG = True
 
 chrome_options = Options()
 chrome_options.add_argument("--headless")
@@ -23,7 +24,8 @@ config.read("config.ini")
 print("Refreshing data every " + str(int(config['GENERAL']['scan_interval'])) + " seconds")
 
 def on_publish(client,userdata,result):
-    print("data published \n")
+    if(DEBUG):
+        print("data published")
     pass
 
 mqtt_client = paho.Client("grader_publisher")
@@ -32,6 +34,10 @@ if (config['MQTT']['user']):
     mqtt_client.username_pw_set(config['MQTT']['user'], password=config['MQTT']['password'])
 
 mqtt_client.on_publish = on_publish
+
+grades = {}
+last_grades = {}
+first_run = True
 
 while True:
     driver = webdriver.Chrome("chromedriver", options=chrome_options)
@@ -65,8 +71,11 @@ while True:
         # get table and rows
         table = driver.find_element_by_xpath("//*[@id='wrapper']/div[6]/div[2]/form/table[2]")
         rows = table.find_elements(By.TAG_NAME, "tr")
-
-        grades = {}
+        if (grades and not first_run):
+            last_grades = grades
+            grades = {}
+        
+        summary = {}
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, "td")
             if len(cells) > 6:
@@ -80,17 +89,34 @@ while True:
                     "state": cells[5].text,
                     "credits": cells[6].text
                 }
-                grades[module['number']] = module
-        #print(json.dumps(grades, indent=4, sort_keys=False))
-
-        print("Connecting to " + config['MQTT']['host'] + ":" + str(int(config['MQTT']['port'])))
+                if (module["number"] == "10"):
+                    summary["percentage"] = module["grade"]
+                    summary["grade"] = module["semester"]
+                else:
+                    grades[module['number']] = module
+        if(DEBUG):
+            print(json.dumps(grades, indent=4, sort_keys=False))
+        # get diff of current and last grades
+        new_grade = { k : grades[k] for k in set(grades) - set(last_grades) }
+        if(DEBUG):
+            print("Connecting to " + config['MQTT']['host'] + ":" + str(int(config['MQTT']['port'])))
         mqtt_client.connect(config['MQTT']['host'],port=int(config['MQTT']['port']))
-        print("Connected ... Publishing to " + config['MQTT']['topic'])
-        ret = mqtt_client.publish(config['MQTT']['topic'], json.dumps(grades), retain=True)
-        #print(ret)
-        print("Disconnecting ...\r")
+        if(DEBUG):
+            print("Connected ... Publishing to " + config['MQTT']['topic'])
+        # new grade discovered
+        if (new_grade and not first_run):
+            ret = mqtt_client.publish(config['MQTT']['topic'] + "/new_grade", json.dumps(new_grade), retain=True)
+        
+        ret = mqtt_client.publish(config['MQTT']['topic'] + "/sensor", str(len(rows)), retain=True)
+        ret = mqtt_client.publish(config['MQTT']['topic'] + "/grades", json.dumps(grades), retain=True)
+        ret = mqtt_client.publish(config['MQTT']['topic'] + "/summary", json.dumps(summary), retain=True)
+        
+        if(DEBUG):
+            print("Disconnecting ...\r")
         mqtt_client.disconnect()
-        print("Disconnected       ")
+        if(DEBUG):
+            print("Disconnected       ")
+        first_run = False
     finally:
         driver.quit()
         sleep(int(config['GENERAL']['scan_interval']))
