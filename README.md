@@ -115,3 +115,20 @@ Add a new Markdown Card to the Lovelcae UI. Paste the following code to get a fu
 {%- endfor -%}
 ```
 
+# Run Script as service
+
+To enable the script as a service in Linux, you can use the provided script `setup.sh`
+Move to the cloned repository and execute the script with `sudo` rights. 
+
+```bash
+cd thm-grade-grabber
+sudo ./setup.sh
+```
+
+The script is now added as a system service and will be started every time the device starts.
+
+You can disable this by using 
+
+```bash
+sudo systemctl disable thm-grade-grabber.service
+```
