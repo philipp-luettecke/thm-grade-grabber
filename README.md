@@ -13,11 +13,18 @@ sudo python3 -m pip install selenium paho.mqtt
 
 ```
 
+After this you are able to run the script by executing:
+
+```bash
+python3 grab.py
+```
+
+
 ## Config.ini
 At `[USERDATA]` please provide your THM CAS Credentials.
 
 At `[MQTT]` please provide host and port of your MQTT broker. If you also have a user and password here, provide it as well.
-The "topic" is the topic, where the mqtt messages will be published to.
+The "topic" is the base-topic, where the mqtt messages will be published to.
 
 At `[GENERAL]` you can provide the interval, in which the script is supposed to check for updates.
 
@@ -45,6 +52,16 @@ sensor:
     unit_of_measurement: "%"
     json_attributes_topic: "thm_grabber/summary"
 ```
+### Available attribtues
+
+| number | Represents the Module Number (TI5001 etc.) |
+| description | Contains the Name of the Module |
+| semester | Contains the Semester, the Module was visited |
+| grade | Contains the grade of the exam (1,3 etc) |
+| percentage | Contains the percentage (93) |
+| state | Contains either "bestanden" or "nicht bestanden" |
+| credits | Represents the credit points for the module |
+
 
 ### New Grade Notification
 There is another topic, where messages are published, once there is a new grade detected, that was not listed before. 
@@ -88,7 +105,7 @@ Add a new Markdown Card to the
 | ------ | :----------- | :---: | :----: |
 {%- for grade in states.sensor if grade.entity_id.endswith('thm_grades') -%}
   {%- for attr in grade.attributes if not attr.startswith('unit') and not attr.startswith('friendly') -%}
-  {%- if state_attr('sensor.thm_grades', attr)["number"].endswith('000') or state_attr('sensor.thm_grades', attr)["number"].endswith('AP') %}
+  {%- if state_attr('sensor.thm_grades', attr)["number"].endswith('000') or state_attr('sensor.thm_grades', attr)["number"].endswith('AP') or state_attr('sensor.thm_grades', attr)["number"].endswith('WPF')%}
   | **{{ state_attr('sensor.thm_grades', attr)["number"] }}** |  **{{ state_attr('sensor.thm_grades', attr)["description"] }}** | **{{ state_attr('sensor.thm_grades', attr)["grade"] }}** | **{{ state_attr('sensor.thm_grades', attr)["percentage"] }}** |
   {% else %}
   | {{ state_attr('sensor.thm_grades', attr)["number"] }} | {{ state_attr('sensor.thm_grades', attr)["description"] }} |  {{ state_attr('sensor.thm_grades', attr)["grade"] }} | {{ state_attr('sensor.thm_grades', attr)["percentage"] }} |
