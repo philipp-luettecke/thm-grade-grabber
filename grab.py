@@ -18,10 +18,11 @@ chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
 
 config = configparser.ConfigParser()
-print("Reading config.ini")
+if(DEBUG):
+    print("Reading config.ini")
 config.read("config.ini")
-
-print("Refreshing data every " + str(int(config['GENERAL']['scan_interval'])) + " seconds")
+if(DEBUG):
+    print("Refreshing data every " + str(int(config['GENERAL']['scan_interval'])) + " seconds")
 
 def on_publish(client,userdata,result):
     if(DEBUG):
@@ -122,7 +123,8 @@ while True:
             print("Disconnected       ")
         first_run = False
     except:
-        print("An error occured.\nRetrying after " + int(config['GENERAL']['scan_interval']) + " seconds.")
+        if(DEBUG):
+            print("An error occured.\nRetrying after " + int(config['GENERAL']['scan_interval']) + " seconds.")
     finally:
         driver.quit()
         sleep(int(config['GENERAL']['scan_interval']))
