@@ -120,6 +120,8 @@ Add a new Markdown Card to the Lovelcae UI. Paste the following code to get a fu
 To enable the script as a service in Linux, you can use the provided script `setup.sh`
 Move to the cloned repository and execute the script with `sudo` rights. 
 
+**Note** The script is running like this on a Raspberry Pi Zero W. It may be neccessary to change the User in the file `/etc/systemd/system/thm-grade-grabber.service` from `pi` to `root` when using the script on a generic linux machine.
+
 ```bash
 cd thm-grade-grabber
 sudo ./setup.sh
