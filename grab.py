@@ -121,6 +121,8 @@ while True:
         if(DEBUG):
             print("Disconnected       ")
         first_run = False
+    except:
+        print("An error occured.\nRetrying after " + int(config['GENERAL']['scan_interval']) + " seconds.")
     finally:
         driver.quit()
         sleep(int(config['GENERAL']['scan_interval']))
