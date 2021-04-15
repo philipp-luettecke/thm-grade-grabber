@@ -96,6 +96,10 @@ while True:
                     grades[module['number']] = module
         if(DEBUG):
             print(json.dumps(grades, indent=4, sort_keys=False))
+        
+        # Log out from services
+        driver.find_element_by_xpath("/html/body/div/div[3]/a[2]").click()
+
         # get diff of current and last grades
         new_grade = { k : grades[k] for k in set(grades) - set(last_grades) }
         if(DEBUG):
