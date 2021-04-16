@@ -38,6 +38,7 @@ mqtt_client.on_publish = on_publish
 
 grades = {}
 last_grades = {}
+summary = {}
 first_run = True
 
 while True:
@@ -72,11 +73,12 @@ while True:
         # get table and rows
         table = driver.find_element_by_xpath("//*[@id='wrapper']/div[6]/div[2]/form/table[2]")
         rows = table.find_elements(By.TAG_NAME, "tr")
+        
         if (grades and not first_run):
             last_grades = grades
             grades = {}
         
-        summary = {}
+        # Iterate through rows of Table and add to modules dict
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, "td")
             if len(cells) > 6:
@@ -101,16 +103,19 @@ while True:
         # Log out from services
         driver.find_element_by_xpath("/html/body/div/div[3]/a[2]").click()
 
-        # get diff of current and last grades
-        new_grade = { k : grades[k] for k in set(grades) - set(last_grades) }
         if(DEBUG):
             print("Connecting to " + config['MQTT']['host'] + ":" + str(int(config['MQTT']['port'])))
         mqtt_client.connect(config['MQTT']['host'],port=int(config['MQTT']['port']))
         if(DEBUG):
             print("Connected ... Publishing to " + config['MQTT']['topic'])
-        # new grade discovered
-        if (new_grade and not first_run):
-            ret = mqtt_client.publish(config['MQTT']['topic'] + "/new_grade", json.dumps(new_grade), retain=True)
+        
+        if (not first_run):
+            # get diff of current and last grades
+            new_grade = { k : grades[k] for k in set(grades) - set(last_grades) }
+
+            # new grade discovered
+            if (len(new_grade) > 0 and not first_run):
+                ret = mqtt_client.publish(config['MQTT']['topic'] + "/new_grade", json.dumps(new_grade), retain=False)
         
         ret = mqtt_client.publish(config['MQTT']['topic'] + "/sensor", str(len(rows)), retain=True)
         ret = mqtt_client.publish(config['MQTT']['topic'] + "/grades", json.dumps(grades), retain=True)
@@ -124,7 +129,7 @@ while True:
         first_run = False
     except:
         if(DEBUG):
-            print("An error occured.\nRetrying after " + int(config['GENERAL']['scan_interval']) + " seconds.")
+            print("An error occured.\nRetrying after " + str(int(config['GENERAL']['scan_interval'])) + " seconds.")
     finally:
         driver.quit()
         sleep(int(config['GENERAL']['scan_interval']))
