@@ -1,6 +1,9 @@
 # THM Grade Grabber 
 This script is supposed to grab your grades from the THM "Service für Studierende".
 
+> **_WARNING:_**  Due to THM website resturcture this script does no longer work
+> I will take care of this some time in the future.
+
 ## Setup
 
 Before being able to use the script, you will have to install certain programs:
